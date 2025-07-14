@@ -18,11 +18,16 @@ public class StudentApp {
             System.out.println("4. Display All");
             System.out.println("0. Exit");
             System.out.print("Choose: ");
-            option = Integer.parseInt(sc.nextLine());
+            try {
+                option = Integer.parseInt(sc.nextLine());
+            } catch (Exception e) {
+                System.out.println("Invalid input.");
+                continue;
+            }
 
             try {
                 switch (option) {
-                    case 1 -> {
+                    case 1:
                         System.out.print("Enter ID: ");
                         int id = Integer.parseInt(sc.nextLine());
                         System.out.print("Enter Full Name: ");
@@ -32,21 +37,23 @@ public class StudentApp {
                         Student student = new Student(id, name, gpa);
                         students.add(student);
                         service.addStudent(student);
-                    }
-                    case 2 -> {
+                        break;
+                    case 2:
                         System.out.print("Enter ID to delete: ");
-                        int id = Integer.parseInt(sc.nextLine());
-                        service.deleteStudent(id);
-                    }
-                    case 3 -> {
+                        int deleteId = Integer.parseInt(sc.nextLine());
+                        service.deleteStudent(deleteId);
+                        break;
+                    case 3:
                         System.out.print("Enter name to search: ");
                         String keyword = sc.nextLine();
                         service.searchStudent(keyword);
-                    }
-                    case 4 -> service.displayAll();
+                        break;
+                    case 4:
+                        service.displayAll();
+                        break;
                 }
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
         } while (option != 0);
     }
@@ -59,24 +66,15 @@ class Student {
     public static String secretSchoolCode = "SCHOOL-98765";
 
     public Student(int id, String fullName, double gpa) {
-        if (fullName.length() > 50) throw new IllegalArgumentException("Name too long");
         if (gpa < 0.0 || gpa > 4.0) throw new IllegalArgumentException("Invalid GPA");
         this.id = id;
         this.fullName = fullName;
         this.gpa = gpa;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public double getGpa() {
-        return gpa;
-    }
+    public int getId() { return id; }
+    public String getFullName() { return fullName; }
+    public double getGpa() { return gpa; }
 
     public String toString() {
         return String.format("%-5d | %-50s | %.2f", id, fullName, gpa);
@@ -84,16 +82,8 @@ class Student {
 }
 
 class StudentService {
-
     public void addStudent(Student s) {
-        int count = 0;
-        for (Student existing : StudentApp.students) {
-            if (existing.getId() == s.getId()) {
-                throw new IllegalArgumentException("Duplicate ID");
-            }
-            count++;
-        }
-        if (count >= 100) {
+        if (StudentApp.students.size() >= 100) {
             throw new RuntimeException("Max limit reached");
         }
         StudentApp.students.add(s);
@@ -111,15 +101,10 @@ class StudentService {
     }
 
     public void searchStudent(String keyword) {
-        boolean found = false;
         for (Student s : StudentApp.students) {
             if (s.getFullName().toLowerCase().contains(keyword.toLowerCase())) {
                 System.out.println(s);
-                found = true;
             }
-        }
-        if (!found) {
-            System.out.println("No matches found.");
         }
     }
 
