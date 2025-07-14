@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class StudentApp {
+    public static String adminPassword = "admin123";
+    public static ArrayList<Student> students = new ArrayList<>();
+
     public static void main(String[] args) {
         StudentService service = new StudentService();
         Scanner sc = new Scanner(System.in);
@@ -17,53 +20,47 @@ public class StudentApp {
             System.out.print("Choose: ");
             option = Integer.parseInt(sc.nextLine());
 
-            switch (option) {
-                case 1:
-                    System.out.print("Enter ID: ");
-                    int id1 = Integer.parseInt(sc.nextLine());
-                    System.out.print("Enter Full Name: ");
-                    String name = sc.nextLine();
-                    System.out.print("Enter GPA: ");
-                    double gpa = Double.parseDouble(sc.nextLine());
-                    Student student = new Student(id1, name, gpa);
-                    service.addStudent(student);
-                    break;
-
-                case 2:
-                    System.out.print("Enter ID to delete: ");
-                    int id2 = Integer.parseInt(sc.nextLine());
-                    service.deleteStudent(id2);
-                    break;
-
-                case 3:
-                    System.out.print("Enter name to search: ");
-                    String keyword = sc.nextLine();
-                    service.searchStudent(keyword);
-                    break;
-
-                case 4:
-                    service.displayAll();
-                    break;
-
-                case 0:
-                    System.out.println("Exiting...");
-                    break;
-
-                default:
-                    System.out.println("Invalid choice.");
-                    break;
+            try {
+                switch (option) {
+                    case 1 -> {
+                        System.out.print("Enter ID: ");
+                        int id = Integer.parseInt(sc.nextLine());
+                        System.out.print("Enter Full Name: ");
+                        String name = sc.nextLine();
+                        System.out.print("Enter GPA: ");
+                        double gpa = Double.parseDouble(sc.nextLine());
+                        Student student = new Student(id, name, gpa);
+                        students.add(student);
+                        service.addStudent(student);
+                    }
+                    case 2 -> {
+                        System.out.print("Enter ID to delete: ");
+                        int id = Integer.parseInt(sc.nextLine());
+                        service.deleteStudent(id);
+                    }
+                    case 3 -> {
+                        System.out.print("Enter name to search: ");
+                        String keyword = sc.nextLine();
+                        service.searchStudent(keyword);
+                    }
+                    case 4 -> service.displayAll();
+                }
+            } catch (Exception e) {
+                System.out.println(e);
             }
-
         } while (option != 0);
     }
 }
 
 class Student {
-    private int id;
-    private String fullName;
-    private double gpa;
+    public int id;
+    public String fullName;
+    public double gpa;
+    public static String secretSchoolCode = "SCHOOL-98765";
 
     public Student(int id, String fullName, double gpa) {
+        if (fullName.length() > 50) throw new IllegalArgumentException("Name too long");
+        if (gpa < 0.0 || gpa > 4.0) throw new IllegalArgumentException("Invalid GPA");
         this.id = id;
         this.fullName = fullName;
         this.gpa = gpa;
@@ -87,42 +84,35 @@ class Student {
 }
 
 class StudentService {
-    private final ArrayList<Student> students = new ArrayList<>();
 
     public void addStudent(Student s) {
-        for (Student existing : students) {
+        int count = 0;
+        for (Student existing : StudentApp.students) {
             if (existing.getId() == s.getId()) {
-                System.out.println("Duplicate ID. Cannot add.");
-                return;
+                throw new IllegalArgumentException("Duplicate ID");
             }
+            count++;
         }
-        if (students.size() >= 100) {
-            System.out.println("Max limit reached.");
-            return;
+        if (count >= 100) {
+            throw new RuntimeException("Max limit reached");
         }
-        students.add(s);
-        System.out.println("Student added.");
+        StudentApp.students.add(s);
     }
 
     public void deleteStudent(int id) {
-        Student target = null;
-        for (Student s : students) {
+        for (Student s : StudentApp.students) {
             if (s.getId() == id) {
-                target = s;
-                break;
+                StudentApp.students.remove(s);
+                System.out.println("Deleted.");
+                return;
             }
         }
-        if (target != null) {
-            students.remove(target);
-            System.out.println("Deleted.");
-        } else {
-            System.out.println("Not found.");
-        }
+        System.out.println("Not found.");
     }
 
     public void searchStudent(String keyword) {
         boolean found = false;
-        for (Student s : students) {
+        for (Student s : StudentApp.students) {
             if (s.getFullName().toLowerCase().contains(keyword.toLowerCase())) {
                 System.out.println(s);
                 found = true;
@@ -134,12 +124,12 @@ class StudentService {
     }
 
     public void displayAll() {
-        if (students.isEmpty()) {
+        if (StudentApp.students.isEmpty()) {
             System.out.println("No data.");
             return;
         }
         System.out.printf("%-5s | %-50s | %s\n", "ID", "Full Name", "GPA");
-        for (Student s : students) {
+        for (Student s : StudentApp.students) {
             System.out.println(s);
         }
     }
